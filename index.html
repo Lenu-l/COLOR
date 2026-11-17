@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>配色灵感 · 色卡收集工具</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#6C5CE7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="配色灵感">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" type="image/png" href="./icon-192.png">
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root{
+    --accent:#6C5CE7; --accent-soft:#EEEAFE;
+    --ink:#1E1E28; --ink-2:#6B6B7B; --ink-3:#A0A0AE;
+    --line:#ECEDF2; --bg:#F5F6FA; --card:#FFFFFF;
+  }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:#E9EAF0; color:var(--ink); display:flex; justify-content:center;
+  }
+  .phone{
+    width:100%; max-width:430px; background:var(--bg); min-height:100vh;
+    position:relative; display:flex; flex-direction:column;
+    box-shadow:0 0 46px rgba(40,40,70,.12);
+  }
+  @media(min-width:480px){
+    .phone{ margin:24px 0; border-radius:30px; min-height:calc(100vh - 48px); overflow:hidden; }
+  }
+  .header{ padding:22px 20px 12px; background:var(--bg); position:sticky; top:0; z-index:10; }
+  .h-top{ display:flex; align-items:center; gap:12px; }
+  .h-title{ font-size:21px; font-weight:800; letter-spacing:.5px; }
+  .h-sub{ font-size:12px; color:var(--ink-2); margin-top:3px; }
+  .h-spacer{ flex:1; }
+  .add-btn{
+    width:44px; height:44px; border-radius:14px; border:none; background:var(--accent);
+    color:#fff; font-size:26px; line-height:1; cursor:pointer; font-weight:300;
+    box-shadow:0 6px 16px rgba(108,92,231,.35);
+  }
+  .icon-btn{
+    width:44px; height:44px; border-radius:14px; border:1px solid var(--line); background:var(--card);
+    color:var(--ink-2); cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .icon-btn:active{ background:var(--accent-soft); color:var(--accent); }
+  .search{
+    margin-top:16px; display:flex; align-items:center; gap:8px; background:var(--card);
+    border:1px solid var(--line); border-radius:12px; padding:0 12px; height:42px;
+  }
+  .search svg{ flex:0 0 auto; }
+  .search input{ border:none; outline:none; background:transparent; font-size:14px; width:100%; color:var(--ink); }
+  .search input::placeholder{ color:var(--ink-3); }
+  .filters{ display:flex; gap:8px; overflow-x:auto; padding:14px 20px 4px; scrollbar-width:none; }
+  .filters::-webkit-scrollbar{ display:none; }
+  .chip{
+    flex:0 0 auto; padding:7px 14px; border-radius:20px; font-size:13px; cursor:pointer;
+    background:var(--card); border:1px solid var(--line); color:var(--ink-2); white-space:nowrap;
+  }
+  .chip.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .chip.star.active{ background:#F5A623; border-color:#F5A623; }
+  .scroll{ flex:1; overflow-y:auto; padding:12px 20px 110px; }
+  .wall{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .card{ background:var(--card); border-radius:16px; padding:9px; box-shadow:0 2px 10px rgba(30,30,60,.05); border:1px solid var(--line); min-width:0; }
+  .tile{ aspect-ratio:1; width:100%; border-radius:12px; overflow:hidden; position:relative; cursor:pointer; display:flex; }
+  .tile .seg{ height:100%; flex:1; min-width:0; border-right:1px solid rgba(255,255,255,.28); }
+  .tile .seg:last-child{ border-right:none; }
+  .tile-tip{ position:absolute; bottom:5px; right:5px; font-size:10px; background:rgba(255,255,255,.85); color:#333; padding:2px 6px; border-radius:6px; opacity:0; transition:opacity .15s; pointer-events:none; }
+  .tile:hover .tile-tip{ opacity:1; }
+  .preview{ display:flex; height:56px; border-radius:10px; overflow:hidden; margin-top:12px; }
+  .preview .swatch{ flex:1; }
+  .random-bar{ display:flex; height:64px; border-radius:11px; overflow:hidden; }
+  .random-bar div{ flex:1; }
+  .c-meta{ display:flex; align-items:center; gap:8px; margin-top:9px; }
+  .c-title{ font-size:12px; font-weight:700; color:var(--ink); flex:1; line-height:1.3; }
+  .star{ border:none; background:transparent; cursor:pointer; font-size:20px; color:#D5D5DE; line-height:1; padding:2px; margin-left:auto; }
+  .star.on{ color:#F5A623; }
+  .c-source{ font-size:12px; color:var(--ink-2); margin-top:3px; min-height:16px; }
+  .tags{ display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; }
+  .tag{ font-size:11px; color:var(--accent); background:var(--accent-soft); padding:3px 9px; border-radius:8px; }
+  .ops{ display:flex; gap:5px; margin-top:9px; padding-top:8px; border-top:1px solid var(--line); }
+  .op{
+    flex:1; text-align:center; font-size:11px; color:var(--ink-2); cursor:pointer;
+    padding:7px 0; border-radius:7px; background:var(--bg); border:none;
+  }
+  .op:active{ background:var(--accent-soft); color:var(--accent); }
+  .op.danger{ color:#E06060; }
+  .empty{ text-align:center; color:var(--ink-3); padding:70px 20px; font-size:14px; line-height:1.8; }
+
+  .overlay{ position:absolute; inset:0; background:rgba(25,25,40,.42); opacity:0; pointer-events:none; transition:opacity .28s; z-index:40; }
+  .overlay.open{ opacity:1; pointer-events:auto; }
+  .sheet{
+    position:absolute; left:0; right:0; bottom:0; background:var(--card);
+    border-radius:22px 22px 0 0; transform:translateY(105%); transition:transform .3s cubic-bezier(.2,.8,.2,1);
+    z-index:50; max-height:92%; display:flex; flex-direction:column; box-shadow:0 -10px 34px rgba(0,0,0,.14);
+  }
+  .sheet.open{ transform:translateY(0); }
+  .sheet-head{ padding:16px 20px 6px; display:flex; align-items:center; }
+  .sheet-head b{ font-size:17px; }
+  .sheet-x{ margin-left:auto; border:none; background:var(--bg); width:30px; height:30px; border-radius:50%; font-size:17px; color:var(--ink-2); cursor:pointer; }
+  .sheet-body{ overflow-y:auto; padding:6px 20px 16px; }
+  .tabs{ display:flex; gap:6px; background:var(--bg); padding:4px; border-radius:11px; margin:14px 0 16px; }
+  .tab{ flex:1; text-align:center; padding:9px 0; font-size:13px; border-radius:8px; cursor:pointer; color:var(--ink-2); }
+  .tab.active{ background:var(--card); color:var(--accent); font-weight:700; box-shadow:0 1px 5px rgba(0,0,0,.06); }
+  .pane{ display:none; }
+  .pane.active{ display:block; }
+  .lbl{ font-size:12px; color:var(--ink-2); margin:4px 0 8px; font-weight:600; }
+
+  .draft-wrap{ background:var(--bg); border-radius:13px; padding:11px; margin-bottom:4px; }
+  .draft-head{ display:flex; align-items:center; justify-content:space-between; font-size:12px; color:var(--ink-2); margin-bottom:9px; }
+  .draft-head b{ color:var(--accent); }
+  .draft-clear{ border:none; background:none; color:#E06060; font-size:12px; cursor:pointer; padding:0; }
+  .draft-strip{ display:flex; height:52px; border-radius:9px; overflow:hidden; background:#fff; border:1px solid var(--line); }
+  .draft-strip .seg{ flex:1; position:relative; min-width:0; border-right:1px solid rgba(255,255,255,.35); cursor:pointer; }
+  .draft-strip .seg:last-child{ border-right:none; }
+  .draft-strip .seg.editing{ outline:2px solid var(--accent); outline-offset:-2px; }
+  .seg-x{ position:absolute; top:3px; right:3px; width:16px; height:16px; border-radius:50%; background:rgba(0,0,0,.5); color:#fff; font-size:11px; line-height:16px; text-align:center; cursor:pointer; }
+  .draft-empty{ display:flex; align-items:center; justify-content:center; width:100%; font-size:12px; color:var(--ink-3); }
+  .draft-hint{ font-size:11px; color:var(--ink-3); margin-top:7px; }
+  .block-editor{ margin-top:12px; padding-top:12px; border-top:1px dashed var(--line); }
+  .be-head{ display:flex; align-items:center; margin-bottom:10px; }
+  .be-head b{ font-size:13px; }
+  .be-done{ margin-left:auto; border:none; background:var(--accent); color:#fff; font-size:12px; font-weight:700; padding:6px 14px; border-radius:8px; cursor:pointer; }
+
+  .drop{
+    border:1.5px dashed #C9C4F5; border-radius:12px; padding:22px 12px; text-align:center;
+    color:var(--accent); font-size:13px; cursor:pointer; background:var(--accent-soft);
+  }
+  .drop input{ display:none; }
+  .schemes{ display:flex; gap:7px; flex-wrap:wrap; margin:12px 0; }
+  .scheme{ font-size:12px; padding:6px 11px; border-radius:8px; border:1px solid var(--line); background:var(--card); cursor:pointer; color:var(--ink-2); }
+  .scheme.active{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); font-weight:600; }
+  .btn-line{ width:100%; padding:11px; border:none; border-radius:10px; background:var(--accent-soft); color:var(--accent); font-size:14px; font-weight:700; cursor:pointer; margin-top:12px; }
+  .btn-line.gray{ background:var(--bg); color:var(--ink-2); }
+  .hexrows{ display:flex; flex-direction:column; gap:8px; }
+  .hexrow{ display:flex; gap:8px; align-items:center; }
+  .hexrow input[type=color]{ width:40px; height:38px; border:none; background:none; padding:0; cursor:pointer; border-radius:8px; }
+  .hexrow input[type=text]{
+    flex:1; height:38px; border:1px solid var(--line); border-radius:9px; padding:0 12px;
+    font-size:13px; font-family:ui-monospace,Menlo,Consolas,monospace; outline:none; color:var(--ink);
+  }
+  .hexrow button{ border:none; background:var(--bg); color:var(--ink-2); width:38px; height:38px; border-radius:9px; font-size:18px; cursor:pointer; }
+  .field{ margin-top:14px; }
+  .field input{
+    width:100%; height:42px; border:1px solid var(--line); border-radius:10px; padding:0 13px;
+    font-size:14px; outline:none; color:var(--ink);
+  }
+  .field input:focus{ border-color:var(--accent); }
+  .sheet-foot{ display:flex; gap:10px; padding:12px 20px 20px; border-top:1px solid var(--line); }
+  .btn-ghost{ flex:1; padding:13px; border:1px solid var(--line); background:var(--card); border-radius:11px; font-size:15px; cursor:pointer; color:var(--ink-2); }
+  .btn-primary{ flex:2; padding:13px; border:none; background:var(--accent); color:#fff; border-radius:11px; font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 6px 16px rgba(108,92,231,.3); }
+  .toast{
+    position:absolute; left:50%; bottom:34px; transform:translateX(-50%) translateY(16px);
+    background:#23232E; color:#fff; padding:11px 20px; border-radius:22px; font-size:13px;
+    opacity:0; transition:.25s; pointer-events:none; z-index:99; white-space:nowrap; box-shadow:0 8px 24px rgba(0,0,0,.2);
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .codebox{
+    width:100%; height:180px; border:1px solid var(--line); border-radius:10px; padding:12px;
+    font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12px; color:var(--ink); resize:none; outline:none; background:var(--bg);
+  }
+  .backup-sec{ padding:14px; background:var(--bg); border-radius:12px; margin-bottom:12px; }
+  .backup-sec h4{ margin:0 0 6px; font-size:14px; }
+  .backup-sec p{ margin:0 0 12px; font-size:12px; color:var(--ink-2); line-height:1.6; }
+  .backup-actions{ display:flex; gap:8px; }
+  .backup-actions .btn-line{ margin-top:0; flex:1; }
+  .backup-status{ font-size:12px; color:var(--accent); margin-top:10px; min-height:16px; font-weight:600; }
+  .backup-file{ display:none; }
+  .hue-row{ display:flex; flex-wrap:wrap; gap:9px; margin:4px 0 16px; }
+  .picker-wrap{ position:relative; width:100%; border-radius:11px; overflow:hidden; }
+  #pickerCanvas{ display:block; width:100%; height:150px; cursor:crosshair; touch-action:none; }
+  .picker-cursor{ position:absolute; width:18px; height:18px; border:2px solid #fff; border-radius:50%; box-shadow:0 0 0 1px rgba(0,0,0,.45); transform:translate(-50%,-50%); pointer-events:none; }
+  .picked-row{ display:flex; align-items:center; gap:12px; margin-top:14px; }
+  .picked-chip{ width:52px; height:52px; border-radius:12px; border:1px solid var(--line); flex:0 0 auto; }
+  .picked-hex{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:20px; font-weight:700; }
+  .picked-hint{ font-size:12px; color:var(--ink-3); margin-top:3px; }
+
+  .classic-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:4px; }
+  .classic-item{ border:1px solid var(--line); border-radius:12px; overflow:hidden; cursor:pointer; background:var(--card); transition:transform .12s,border-color .15s; }
+  .classic-item:active{ transform:scale(.97); }
+  .classic-item.sel{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft); }
+  .classic-tex{ height:58px; position:relative; }
+  .classic-cap{ padding:8px 9px; }
+  .classic-cap b{ display:block; font-size:13px; }
+  .classic-cap span{ font-size:11px; color:var(--ink-3); }
+  #classicBigPreview{ border-radius:12px; border:1px solid var(--line); height:120px; overflow:hidden; }
+  .pattern-bar{ position:relative; height:74px; border-radius:10px; overflow:hidden; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="header">
+    <div class="h-top">
+      <div>
+        <div class="h-title">配色灵感</div>
+        <div class="h-sub">收好每一个让你心动的配色</div>
+      </div>
+      <div class="h-spacer"></div>
+      <button class="icon-btn" id="backupBtn" title="备份与恢复">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </button>
+      <button class="add-btn" id="addBtn">+</button>
+    </div>
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A0A0AE" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+      <input id="searchInput" placeholder="搜索标签 / 来源 / 色值 / 图案">
+    </div>
+  </div>
+
+  <div class="filters" id="filters"></div>
+  <div class="scroll"><div class="wall" id="wall"></div></div>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="sheet" id="sheet">
+    <div class="sheet-head">
+      <b id="sheetTitle">记录配色</b>
+      <button class="sheet-x" id="sheetX">×</button>
+    </div>
+    <div class="sheet-body">
+      <div class="draft-wrap">
+        <div class="draft-head">
+          <span>当前色卡 · <b id="draftCount">0</b> 块</span>
+          <button class="draft-clear" id="draftClear">清空</button>
+        </div>
+        <div class="draft-strip" id="draftStrip"></div>
+        <div class="draft-hint">点色块可改颜色，点 × 移除 · 纯色块和图案块可混搭</div>
+        <div class="block-editor" id="blockEditor" style="display:none">
+          <div class="be-head"><b id="beTitle">编辑色块</b><button class="be-done" id="beDone">完成</button></div>
+          <div class="pattern-bar" id="bePreview" style="height:88px"></div>
+          <div class="hexrows" id="beHexrows" style="margin-top:12px"></div>
+        </div>
+      </div>
+
+      <div class="tabs" id="tabs">
+        <div class="tab active" data-tab="image">图片取色</div>
+        <div class="tab" data-tab="classic">经典图案</div>
+        <div class="tab" data-tab="manual">手动输入</div>
+        <div class="tab" data-tab="explore">按感觉挑</div>
+        <div class="tab" data-tab="random">随机生成</div>
+      </div>
+
+      <div class="pane active" id="pane-image">
+        <div class="lbl">上传照片或截图，提取主色后作为多个纯色块加入</div>
+        <label class="drop">点击选择图片（或拍照）
+          <input type="file" id="imgInput" accept="image/*">
+        </label>
+        <div class="preview" id="imgPreview"></div>
+        <button class="btn-line" id="imgAdd">+ 把这些颜色加入色卡</button>
+      </div>
+
+      <div class="pane" id="pane-classic">
+        <div class="lbl">点图案 → 可改配色 → 作为一个色块加入，或让整张卡都是它</div>
+        <div class="classic-grid" id="classicGrid"></div>
+        <div id="classicEditor" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">
+          <div class="lbl" id="classicEditTitle">调整配色</div>
+          <div class="pattern-bar" id="classicBigPreview"></div>
+          <div class="hexrows" id="classicHexrows" style="margin-top:12px"></div>
+          <button class="btn-line" id="classicAdd">+ 作为一个色块加入当前色卡</button>
+          <button class="btn-line gray" id="classicOnly">整张色卡只要它（清空其他块）</button>
+          <button class="btn-line gray" id="classicCancel">取消编辑</button>
+        </div>
+      </div>
+
+      <div class="pane" id="pane-manual">
+        <div class="lbl">填好后作为多个纯色块加入</div>
+        <div class="hexrows" id="hexrows"></div>
+        <button class="btn-line gray" id="addHex">+ 添加一个颜色</button>
+        <button class="btn-line" id="manualAdd">+ 把这些颜色加入色卡</button>
+      </div>
+
+      <div class="pane" id="pane-explore">
+        <div class="lbl">第一步：选个大方向，说不清具体颜色也没关系</div>
+        <div class="schemes" id="hues"></div>
+        <div class="lbl">第二步：在下面这块板子上细挑 — 左右调明暗，上下调鲜艳度</div>
+        <div class="picker-wrap" id="pickerWrap">
+          <canvas id="pickerCanvas" width="340" height="200"></canvas>
+          <div class="picker-cursor" id="pickerCursor"></div>
+        </div>
+        <div class="picked-row">
+          <div class="picked-chip" id="pickedChip"></div>
+          <div>
+            <div class="picked-hex" id="pickedHex">#4A90D9</div>
+            <div class="picked-hint">点一下或按住拖动，选到满意为止</div>
+          </div>
+        </div>
+        <button class="btn-line" id="addPicked">+ 把这个颜色加入色卡</button>
+      </div>
+
+      <div class="pane" id="pane-random">
+        <div class="lbl">换到喜欢的组合，作为多个纯色块加入</div>
+        <div class="schemes" id="schemes">
+          <div class="scheme active" data-scheme="analogous">类似色</div>
+          <div class="scheme" data-scheme="complement">互补色</div>
+          <div class="scheme" data-scheme="triad">三角色</div>
+          <div class="scheme" data-scheme="split">分裂互补</div>
+        </div>
+        <div class="random-bar" id="randomBar"></div>
+        <button class="btn-line gray" id="regen">换一组</button>
+        <button class="btn-line" id="randomAdd">+ 把这些颜色加入色卡</button>
+      </div>
+
+      <div id="commonFields">
+        <div class="field"><input id="fSource" placeholder="来源备注（选填）如：大理的日落"></div>
+        <div class="field"><input id="fTags" placeholder="标签（选填）用空格分隔，如：自然 暖"></div>
+      </div>
+    </div>
+    <div class="sheet-foot" id="sheetFoot">
+      <button class="btn-ghost" id="cancelBtn">取消</button>
+      <button class="btn-primary" id="saveBtn">保存色卡</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="codeOverlay"></div>
+  <div class="sheet" id="codeSheet">
+    <div class="sheet-head"><b id="codeTitle">导出 CSS</b><button class="sheet-x" id="codeX">×</button></div>
+    <div class="sheet-body">
+      <div class="lbl" style="margin-bottom:8px">可直接复制到你的项目里</div>
+      <textarea class="codebox" id="codeBox" readonly></textarea>
+    </div>
+    <div class="sheet-foot"><button class="btn-primary" id="copyCode" style="flex:1">复制代码</button></div>
+  </div>
+
+  <div class="overlay" id="backupOverlay"></div>
+  <div class="sheet" id="backupSheet">
+    <div class="sheet-head"><b>备份与恢复</b><button class="sheet-x" id="backupX">×</button></div>
+    <div class="sheet-body">
+      <div class="backup-sec">
+        <h4>导出备份</h4>
+        <p>把全部色卡存成一个文件。存到网盘或发到微信收藏，换手机时可以有备无患。</p>
+        <div class="backup-actions">
+          <button class="btn-line" id="exportFile">下载备份文件</button>
+          <button class="btn-line gray" id="exportCopy">复制备份内容</button>
+        </div>
+      </div>
+      <div class="backup-sec">
+        <h4>导入恢复</h4>
+        <p>选择备份文件，或直接粘贴备份内容。相同色卡不会重复，现有的都会保留。</p>
+        <div class="backup-actions">
+          <button class="btn-line" id="importPick">选择备份文件</button>
+        </div>
+        <input type="file" id="importFile" class="backup-file" accept=".json,application/json">
+        <textarea class="codebox" id="importText" placeholder="或把备份内容粘贴到这里…" style="height:90px;margin-top:10px"></textarea>
+        <button class="btn-line gray" id="importPaste" style="margin-top:8px">粘贴内容导入</button>
+        <div class="backup-status" id="backupStatus"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">已复制</div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var KEY = "palette_cards_v2";
+  var MAX_BLOCKS = 12;
+
+  var SEED = [
+    {id:"s1", colors:["#F4A261","#E9C46A","#2A9D8F","#E76F51","#264653"], source:"大理 · 日落", tags:["自然","暖"], starred:true, createdAt:6},
+    {id:"s2", colors:["#DDBEA9","#CB997E","#6B705C","#B7B7A4","#FFE8D6"], source:"咖啡店包装", tags:["温柔","复古"], starred:false, createdAt:5},
+    {id:"s3", colors:["#0D1B2A","#1B263B","#415A77","#778DA9","#E0E1DD"], source:"编辑器主题", tags:["暗色","专注"], starred:false, createdAt:4},
+    {id:"s4", colors:["#A8D5BA","#CDE7C2","#F0F4D9","#E2C799","#D9A566"], source:"春日菜单", tags:["清新","治愈"], starred:false, createdAt:3}
+  ];
+
+  var HUES = [
+    {name:"红", h:2}, {name:"橙", h:28}, {name:"黄", h:50}, {name:"绿", h:120},
+    {name:"青", h:175}, {name:"蓝", h:212}, {name:"紫", h:275}, {name:"粉", h:330},
+    {name:"棕", h:25}, {name:"灰", h:0, gray:true}
+  ];
+
+  var PATTERNS = [
+    {key:"bw-stripe", name:"黑白条纹", colors:["#1C1C1C","#F5F3EC"], tags:["经典","黑白"], gen:"stripe"},
+    {key:"navy-stripe", name:"海军条纹", colors:["#1B3B6F","#FFFFFF"], tags:["经典","海军风"], gen:"stripe"},
+    {key:"polka-red", name:"红色波点", colors:["#E5484D","#FFF7ED"], tags:["经典","波点"], gen:"dot"},
+    {key:"polka-navy", name:"藏蓝波点", colors:["#20408C","#F5F3EC"], tags:["经典","波点"], gen:"dot"},
+    {key:"argyle", name:"菱格学院", colors:["#2E5A3E","#EDE3CE","#9B3B3B"], tags:["经典","菱格","学院风"], gen:"argyle"},
+    {key:"checker", name:"黑白棋盘", colors:["#1C1C1C","#F5F3EC"], tags:["经典","棋盘"], gen:"checker"},
+    {key:"tartan", name:"苏格兰格", colors:["#1E462F","#9E2B25","#E3B23C","#0F2A3D"], tags:["经典","格纹"], gen:"plaid"},
+    {key:"herring", name:"人字斜纹", colors:["#3A3A3A","#D9D4C7"], tags:["经典","纹理"], gen:"herring"},
+    {key:"candy", name:"糖果波点", colors:["#F2729B","#FFF3D6"], tags:["经典","波点","甜美"], gen:"dot"},
+    {key:"zebra", name:"斑马纹", colors:["#2B2B2B","#EFE9DC"], tags:["经典","动物纹"], gen:"zebra"}
+  ];
+
+  var state = {
+    cards: [], filter: "all", search: "",
+    tab: "image", scheme: "analogous",
+    draft: [], editingId: null, editingBlockIdx: null,
+    patternEditKey: null, patternEditColors: [],
+    imageCols: [], manualColors: ["#B8B8C0","#7A7A88","#3C3C48"], randomCols: [],
+    hue: 212, sat: 70, lit: 50
+  };
+
+  var $ = function(id){ return document.getElementById(id); };
+
+  /* ---------- storage + migration ---------- */
+  function findPattern(key){ return PATTERNS.find(function(p){ return p.key===key; }); }
+
+  function normalizeBlocks(c){
+    if(Array.isArray(c.blocks)){
+      return c.blocks.map(function(b){
+        if(b && b.t==="p"){
+          var p=findPattern(b.key);
+          return {t:"p", key:b.key, gen:b.gen||(p&&p.gen)||"stripe", name:b.name||(p&&p.name)||"图案", cols:(b.cols||[]).slice()};
+        }
+        return {t:"c", c:(b && (b.c||b.color)) || "#888888"};
+      });
+    }
+    if(c.patternKey){
+      var p2=findPattern(c.patternKey);
+      if(p2) return [{t:"p", key:p2.key, gen:p2.gen, name:p2.name, cols:(c.colors||p2.colors).slice()}];
+    }
+    return (c.colors||[]).map(function(col){ return {t:"c", c:col}; });
+  }
+  function migrate(c){
+    c.blocks = normalizeBlocks(c);
+    return c;
+  }
+  function load(){
+    try{
+      var raw = localStorage.getItem(KEY);
+      if(!raw){
+        var old = localStorage.getItem("palette_cards_v1");
+        state.cards = old ? JSON.parse(old).map(migrate) : SEED.map(migrate);
+        save(); return;
+      }
+      var d = JSON.parse(raw);
+      state.cards = Array.isArray(d) ? d.map(migrate) : SEED.map(migrate);
+    }catch(e){ state.cards = SEED.map(migrate); }
+  }
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state.cards)); }catch(e){} }
+
+  function cardBlocks(c){ return c.blocks && c.blocks.length ? c.blocks : (c.blocks = normalizeBlocks(c)); }
+  function blockBg(b){
+    if(b.t==="p") return patternBg(b.gen, b.cols);
+    return b.c;
+  }
+  function solid(c){ return {t:"c", c:c}; }
+
+  /* ---------- color math ---------- */
+  function rgbToHex(r,g,b){
+    return "#" + [r,g,b].map(function(x){ return Math.max(0,Math.min(255,Math.round(x))).toString(16).padStart(2,"0"); }).join("").toUpperCase();
+  }
+  function hslToHex(h,s,l){
+    s/=100; l/=100;
+    var k=function(n){ return (n + h/30) % 12; };
+    var a = s*Math.min(l,1-l);
+    var f=function(n){ return l - a*Math.max(-1, Math.min(k(n)-3, Math.min(9-k(n),1))); };
+    return rgbToHex(f(0)*255, f(8)*255, f(4)*255);
+  }
+  function hslToRgb(h,s,l){
+    s/=100; l/=100;
+    var k=function(n){ return (n+h/30)%12; };
+    var a=s*Math.min(l,1-l);
+    var f=function(n){ return l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1))); };
+    return [Math.round(f(0)*255),Math.round(f(8)*255),Math.round(f(4)*255)];
+  }
+  function extractColors(img, count){
+    var c=document.createElement("canvas"), ctx=c.getContext("2d",{willReadFrequently:true});
+    var w=img.width,h=img.height, s=120/Math.max(w,h);
+    w=Math.max(1,Math.round(w*s)); h=Math.max(1,Math.round(h*s));
+    c.width=w; c.height=h; ctx.drawImage(img,0,0,w,h);
+    var data;
+    try{ data=ctx.getImageData(0,0,w,h).data; }catch(e){ return []; }
+    var buckets={};
+    for(var i=0;i<data.length;i+=4){
+      var r=data[i],g=data[i+1],b=data[i+2],al=data[i+3];
+      if(al<128) continue;
+      var mx=Math.max(r,g,b),mn=Math.min(r,g,b);
+      if(mx>250 && mn>250) continue;
+      if(mx<12 && mn<12) continue;
+      var key=((r>>4)<<8)|((g>>4)<<4)|(b>>4);
+      if(!buckets[key]) buckets[key]={r:0,g:0,b:0,n:0};
+      buckets[key].r+=r; buckets[key].g+=g; buckets[key].b+=b; buckets[key].n++;
+    }
+    var arr=Object.keys(buckets).map(function(k){
+      var o=buckets[k]; return {r:o.r/o.n,g:o.g/o.n,b:o.b/o.n,n:o.n};
+    }).sort(function(a,b){ return b.n-a.n; });
+    var picked=[];
+    var dist=function(a,b){ var dr=a.r-b.r,dg=a.g-b.g,db=a.b-b.b; return Math.sqrt(dr*dr+dg*dg+db*db); };
+    for(var j=0;j<arr.length;j++){
+      var ok=true;
+      for(var p=0;p<picked.length;p++){ if(dist(arr[j],picked[p])<48){ ok=false; break; } }
+      if(ok){ picked.push(arr[j]); if(picked.length>=count) break; }
+    }
+    return picked.map(function(o){ return rgbToHex(o.r,o.g,o.b); });
+  }
+  function generate(scheme){
+    var base=Math.floor(Math.random()*360);
+    var sat=55+Math.random()*28;
+    var light=48+Math.random()*14;
+    var MAP={
+      analogous:[0,28,-28,56,-56],
+      complement:[0,180,22,202,158],
+      triad:[0,120,240,60,180],
+      split:[0,150,210,30,180]
+    };
+    var offs=MAP[scheme]||MAP.analogous;
+    return offs.map(function(off,idx){
+      var h=(base+off+360)%360;
+      var l=light + (idx>=2 ? (idx%2?14:-10) : 0);
+      return hslToHex(h, sat, Math.max(26,Math.min(84,l)));
+    });
+  }
+
+  function patternBg(gen, cols){
+    var a=cols[0]||"#333", b=cols[1]||"#eee", c=cols[2]||"#999", d=cols[3]||"#555";
+    switch(gen){
+      case "stripe":
+        return "repeating-linear-gradient(135deg,"+a+" 0,"+a+" 14px,"+b+" 14px,"+b+" 28px)";
+      case "dot":
+        return "radial-gradient(circle at center,"+a+" 34%,transparent 36%) 0 0/22px 22px, "+b;
+      case "checker":
+        return "conic-gradient("+a+" 0 25%,"+b+" 0 50%,"+a+" 0 75%,"+b+" 0) 0 0/30px 30px";
+      case "argyle":
+        return "radial-gradient(circle at 50% 50%,"+c+" 2px,transparent 2.5px) 0 0/40px 40px,"
+          +"repeating-linear-gradient(45deg,transparent 0 18px,"+a+" 18px 20px,transparent 20px 38px),"
+          +"repeating-linear-gradient(-45deg,transparent 0 18px,"+a+" 18px 20px,transparent 20px 38px),"+b;
+      case "plaid":
+        return "repeating-linear-gradient(90deg,transparent 0 20px,"+a+"AA 20px 32px,transparent 32px 52px),"
+          +"repeating-linear-gradient(0deg,transparent 0 20px,"+b+"AA 20px 32px,transparent 32px 52px),"
+          +"repeating-linear-gradient(90deg,transparent 0 48px,"+c+" 48px 52px),"
+          +"repeating-linear-gradient(0deg,transparent 0 48px,"+d+" 48px 52px),#EDE7DA";
+      case "herring":
+        return "linear-gradient(135deg,"+a+" 25%,transparent 25%) -12px 0/24px 24px,"
+          +"linear-gradient(225deg,"+a+" 25%,transparent 25%) -12px 0/24px 24px,"
+          +"linear-gradient(315deg,"+a+" 25%,transparent 25%) 0 0/24px 24px,"
+          +"linear-gradient(45deg,"+a+" 25%,"+b+" 25%) 0 0/24px 24px";
+      case "zebra":
+        return "repeating-linear-gradient(105deg,"+a+" 0,"+a+" 9px,"+b+" 9px,"+b+" 15px,"+a+" 15px,"+a+" 21px,"+b+" 21px,"+b+" 40px)";
+      default:
+        return "linear-gradient(90deg,"+a+","+b+")";
+    }
+  }
+
+  /* ---------- draft ---------- */
+  function renderDraft(){
+    var n=state.draft.length;
+    $("draftCount").textContent=n;
+    $("saveBtn").textContent="保存色卡"+(n?"（"+n+"块）":"");
+    if(!n){
+      $("draftStrip").innerHTML='<div class="draft-empty">还没有色块，从下面选一种方式加入</div>';
+      closeBlockEditor(); return;
+    }
+    $("draftStrip").innerHTML=state.draft.map(function(b,i){
+      var on=(state.editingBlockIdx===i)?" editing":"";
+      return '<div class="seg'+on+'" data-segedit="'+i+'" style="background:'+blockBg(b)+'"><span class="seg-x" data-segx="'+i+'">×</span></div>';
+    }).join("");
+  }
+  function closeBlockEditor(){
+    state.editingBlockIdx=null;
+    $("blockEditor").style.display="none";
+  }
+  function openBlockEditor(i){
+    var b=state.draft[i]; if(!b) return;
+    state.editingBlockIdx=i;
+    renderDraft();
+    var isPat=(b.t==="p");
+    $("beTitle").textContent=isPat?("编辑图案「"+(b.name||"图案")+"」· 可改它的颜色"):"编辑纯色块";
+    renderBlockEditor();
+    $("blockEditor").style.display="block";
+  }
+  function renderBlockEditor(){
+    var i=state.editingBlockIdx; if(i===null) return;
+    var b=state.draft[i]; if(!b) return;
+    $("bePreview").style.background=blockBg(b);
+    var cols=b.t==="p"?b.cols:[b.c];
+    $("beHexrows").innerHTML=cols.map(function(col,j){
+      return '<div class="hexrow">'
+        +'<input type="color" value="'+col+'" data-becol="'+j+'">'
+        +'<input type="text" value="'+col+'" data-becolt="'+j+'" maxlength="7">'
+        +(b.t==="p"?('<span style="font-size:11px;color:var(--ink-3);white-space:nowrap">色 '+(j+1)+'</span>'):'')
+        +'</div>';
+    }).join("");
+  }
+  function addBlocks(list){
+    var clean=list.filter(function(b){
+      if(b.t==="p") return b.cols && b.cols.length>=2;
+      return /^#[0-9A-F]{6}$/.test(b.c);
+    });
+    if(!clean.length){ toast("没有可加入的颜色"); return false; }
+    if(state.draft.length+clean.length>MAX_BLOCKS){ toast("一张色卡最多 "+MAX_BLOCKS+" 块"); return false; }
+    clean.forEach(function(b){ state.draft.push(b); });
+    renderDraft(); return true;
+  }
+
+  /* ---------- pattern editor ---------- */
+  function renderClassics(){
+    $("classicGrid").innerHTML=PATTERNS.map(function(p){
+      var sel=state.patternEditKey===p.key;
+      return '<div class="classic-item'+(sel?" sel":"")+'" data-p="'+p.key+'">'
+        +'<div class="classic-tex" style="background:'+patternBg(p.gen,p.colors)+'"></div>'
+        +'<div class="classic-cap"><b>'+p.name+'</b><span>'+p.tags.join(" · ")+'</span></div></div>';
+    }).join("");
+  }
+  function renderPatternEditor(){
+    if(!state.patternEditKey){ $("classicEditor").style.display="none"; return; }
+    var p=findPattern(state.patternEditKey);
+    $("classicEditor").style.display="block";
+    $("classicEditTitle").textContent="「"+p.name+"」· 点色块改配色";
+    $("classicBigPreview").style.background=patternBg(p.gen,state.patternEditColors);
+    $("classicHexrows").innerHTML=state.patternEditColors.map(function(col,i){
+      return '<div class="hexrow">'
+        +'<input type="color" value="'+col+'" data-pathex="'+i+'">'
+        +'<input type="text" value="'+col+'" data-pathext="'+i+'" maxlength="7">'
+        +'</div>';
+    }).join("");
+  }
+  function addPatternBlock(only){
+    if(!state.patternEditKey) return;
+    var p=findPattern(state.patternEditKey);
+    var b={t:"p", key:p.key, gen:p.gen, name:p.name, cols:state.patternEditColors.slice()};
+    if(only){
+      state.cards.unshift({
+        id:"c"+Date.now()+Math.floor(Math.random()*1000),
+        blocks:[b], source:"", tags:p.tags.slice(), starred:false, createdAt:Date.now()
+      });
+      save(); render(); toast("「"+p.name+"」已作为整张色卡加入"); closeSheet(); return;
+    }
+    if(addBlocks([b])) toast("「"+p.name+"」已作为一块加入");
+  }
+
+  /* ---------- picker ---------- */
+  function isGrayHue(){ return HUES.some(function(x){ return x.h===state.hue && x.gray; }); }
+  function renderHues(){
+    $("hues").innerHTML=HUES.map(function(o){
+      var on=o.h===state.hue;
+      var dot=o.gray?"#B8B8C0":hslToHex(o.h,70,52);
+      return '<div class="scheme'+(on?" active":"")+'" data-h="'+o.h+'">'
+        +'<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:'+dot+';vertical-align:-1px;margin-right:5px"></span>'
+        +o.name+'</div>';
+    }).join("");
+  }
+  function drawPicker(){
+    var cv=$("pickerCanvas"), ctx=cv.getContext("2d");
+    var w=cv.width,h=cv.height;
+    var img=ctx.createImageData(w,h);
+    for(var y=0;y<h;y++){
+      for(var x=0;x<w;x++){
+        var lit=15+(x/(w-1))*77;
+        var sat=isGrayHue()?0:(100-(y/(h-1))*100);
+        var rgb=hslToRgb(state.hue,sat,lit);
+        var idx=(y*w+x)*4;
+        img.data[idx]=rgb[0]; img.data[idx+1]=rgb[1]; img.data[idx+2]=rgb[2]; img.data[idx+3]=255;
+      }
+    }
+    ctx.putImageData(img,0,0);
+    moveCursor();
+  }
+  function pickAt(clientX,clientY){
+    var cv=$("pickerCanvas"), r=cv.getBoundingClientRect();
+    var x=Math.max(0,Math.min(1,(clientX-r.left)/r.width));
+    var y=Math.max(0,Math.min(1,(clientY-r.top)/r.height));
+    state.sat=isGrayHue()?0:Math.round(100-y*100);
+    state.lit=Math.round(15+x*77);
+    moveCursor(); updatePicked();
+  }
+  function moveCursor(){
+    var cur=$("pickerCursor");
+    var xPct=(state.lit-15)/77;
+    var yPct=isGrayHue()?0.5:(100-state.sat)/100;
+    cur.style.left=(xPct*100)+"%"; cur.style.top=(yPct*100)+"%";
+  }
+  function updatePicked(){
+    var hex=hslToHex(state.hue,state.sat,state.lit);
+    $("pickedHex").textContent=hex; $("pickedChip").style.background=hex;
+  }
+  function bindPicker(){
+    var cv=$("pickerCanvas"), dragging=false;
+    var down=function(e){ dragging=true; var p=e.touches?e.touches[0]:e; pickAt(p.clientX,p.clientY); e.preventDefault(); };
+    var move=function(e){ if(!dragging)return; var p=e.touches?e.touches[0]:e; pickAt(p.clientX,p.clientY); e.preventDefault(); };
+    var up=function(){ dragging=false; };
+    cv.addEventListener("mousedown",down);
+    cv.addEventListener("mousemove",move);
+    window.addEventListener("mouseup",up);
+    cv.addEventListener("touchstart",down,{passive:false});
+    cv.addEventListener("touchmove",move,{passive:false});
+    cv.addEventListener("touchend",up);
+  }
+
+  /* ---------- wall ---------- */
+  function allTags(){
+    var set={};
+    state.cards.forEach(function(c){ (c.tags||[]).forEach(function(t){ set[t]=1; }); });
+    return Object.keys(set);
+  }
+  function renderFilters(){
+    var html='<div class="chip'+(state.filter==="all"?" active":"")+'" data-f="all">全部</div>';
+    html+='<div class="chip star'+(state.filter==="star"?" active":"")+'" data-f="star">★ 星标</div>';
+    allTags().forEach(function(t){
+      html+='<div class="chip'+(state.filter==="tag:"+t?" active":"")+'" data-f="tag:'+t+'">'+t+'</div>';
+    });
+    $("filters").innerHTML=html;
+  }
+  function cardText(c){
+    var parts=[c.source||"",(c.tags||[]).join(" ")];
+    cardBlocks(c).forEach(function(b){
+      if(b.t==="p"){ parts.push(b.name||""); parts.push((b.cols||[]).join(" ")); }
+      else parts.push(b.c);
+    });
+    return parts.join(" ").toLowerCase();
+  }
+  function match(c){
+    if(state.filter==="star" && !c.starred) return false;
+    if(state.filter.indexOf("tag:")===0 && (c.tags||[]).indexOf(state.filter.slice(4))<0) return false;
+    if(state.search && cardText(c).indexOf(state.search.toLowerCase())<0) return false;
+    return true;
+  }
+  function render(){
+    renderFilters();
+    var list=state.cards.filter(match);
+    if(!list.length){
+      $("wall").innerHTML='<div class="empty">还没有配色<br>点右上角的 + 记下第一个灵感吧</div>';
+      return;
+    }
+    $("wall").innerHTML=list.map(function(c){
+      var blocks=cardBlocks(c);
+      var segs=blocks.map(function(b){ return '<div class="seg" style="background:'+blockBg(b)+'"></div>'; }).join("");
+      var names=[];
+      blocks.forEach(function(b){ if(b.t==="p" && names.indexOf(b.name)<0) names.push(b.name); });
+      var title=names.length?('<span class="c-title">'+names.join(" · ")+(blocks.length>names.length?" 等":"")+'</span>'):'<span class="c-title"></span>';
+      var tags=(c.tags||[]).map(function(t){ return '<span class="tag">'+t+'</span>'; }).join("");
+      return '<div class="card">'
+        +'<div class="tile" data-act="copyall" data-id="'+c.id+'">'+segs+'<span class="tile-tip">复制整组</span></div>'
+        +'<div class="c-meta">'+title
+        +'<button class="star'+(c.starred?" on":"")+'" data-act="star" data-id="'+c.id+'">'+(c.starred?"★":"☆")+'</button></div>'
+        +(c.source?'<div class="c-source">'+c.source+'</div>':'')
+        +(tags?'<div class="tags">'+tags+'</div>':'')
+        +'<div class="ops">'
+        +'<button class="op" data-act="copyall" data-id="'+c.id+'">复制整组</button>'
+        +'<button class="op" data-act="css" data-id="'+c.id+'">导出 CSS</button>'
+        +'<button class="op" data-act="edit" data-id="'+c.id+'">编辑</button>'
+        +'<button class="op danger" data-act="del" data-id="'+c.id+'">删除</button>'
+        +'</div></div>';
+    }).join("");
+  }
+
+  function toast(msg){
+    var t=$("toast"); t.textContent=msg; t.classList.add("show");
+    clearTimeout(toast._t); toast._t=setTimeout(function(){ t.classList.remove("show"); },1500);
+  }
+  function copyText(txt){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(function(){ toast("已复制"); }).catch(function(){ fallbackCopy(txt); });
+    } else { fallbackCopy(txt); }
+  }
+  function fallbackCopy(txt){
+    var ta=document.createElement("textarea"); ta.value=txt; ta.style.position="fixed"; ta.style.opacity="0";
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); toast("已复制"); }catch(e){ toast("复制失败"); }
+    ta.remove();
+  }
+  function findCard(id){ return state.cards.find(function(c){ return c.id===id; }); }
+  function cardCopyText(c){
+    return cardBlocks(c).map(function(b){
+      if(b.t==="p") return (b.name||"图案")+"("+(b.cols||[]).join(" ")+")";
+      return b.c;
+    }).join("  ");
+  }
+
+  /* ---------- sheet ---------- */
+  function openSheet(id){
+    state.editingId=id||null;
+    var c=id?findCard(id):null;
+    $("sheetTitle").textContent=c?"编辑色卡":"记录配色";
+    state.draft = c ? cardBlocks(c).map(function(b){
+      return b.t==="p" ? {t:"p",key:b.key,gen:b.gen,name:b.name,cols:b.cols.slice()} : {t:"c",c:b.c};
+    }) : [];
+    state.patternEditKey=null; state.patternEditColors=[];
+    state.editingBlockIdx=null; $("blockEditor").style.display="none";
+    state.imageCols=[]; state.manualColors=["#B8B8C0","#7A7A88","#3C3C48"];
+    $("fSource").value=c?(c.source||""):"";
+    $("fTags").value=c?((c.tags||[]).join(" ")):"";
+    $("imgPreview").innerHTML="";
+    switchTab("image");
+    renderManual(); renderRandom(); renderHues(); drawPicker(); updatePicked();
+    renderClassics(); renderPatternEditor(); renderDraft();
+    $("overlay").classList.add("open"); $("sheet").classList.add("open");
+  }
+  function closeSheet(){ $("overlay").classList.remove("open"); $("sheet").classList.remove("open"); }
+  function switchTab(tab){
+    state.tab=tab;
+    [].forEach.call(document.querySelectorAll(".tab"),function(el){ el.classList.toggle("active", el.getAttribute("data-tab")===tab); });
+    [].forEach.call(document.querySelectorAll(".pane"),function(el){ el.classList.toggle("active", el.id==="pane-"+tab); });
+  }
+  function renderManual(){
+    $("hexrows").innerHTML=state.manualColors.map(function(col,i){
+      return '<div class="hexrow">'
+        +'<input type="color" value="'+col+'" data-hex="'+i+'">'
+        +'<input type="text" value="'+col+'" data-hextxt="'+i+'" maxlength="7">'
+        +'<button data-hexdel="'+i+'">×</button></div>';
+    }).join("");
+  }
+  function renderRandom(){
+    state.randomCols=generate(state.scheme);
+    $("randomBar").innerHTML=state.randomCols.map(function(c){ return '<div style="background:'+c+'"></div>'; }).join("");
+  }
+
+  /* ---------- events ---------- */
+  $("addBtn").onclick=function(){ openSheet(null); };
+  $("sheetX").onclick=closeSheet;
+  $("cancelBtn").onclick=closeSheet;
+  $("overlay").onclick=closeSheet;
+  $("draftClear").onclick=function(){ state.draft=[]; closeBlockEditor(); renderDraft(); toast("已清空当前色卡"); };
+  $("draftStrip").onclick=function(e){
+    var x=e.target.closest("[data-segx]");
+    if(x){
+      var idx=+x.getAttribute("data-segx");
+      state.draft.splice(idx,1);
+      if(state.editingBlockIdx===idx) closeBlockEditor();
+      else if(state.editingBlockIdx!==null && state.editingBlockIdx>idx) state.editingBlockIdx--;
+      renderDraft(); return;
+    }
+    var seg=e.target.closest("[data-segedit]");
+    if(seg) openBlockEditor(+seg.getAttribute("data-segedit"));
+  };
+  $("beDone").onclick=function(){ closeBlockEditor(); renderDraft(); };
+  $("beHexrows").addEventListener("input",function(e){
+    var i=state.editingBlockIdx; if(i===null) return;
+    var b=state.draft[i]; if(!b) return;
+    var cols=b.t==="p"?b.cols:[b.c];
+    var j=e.target.getAttribute("data-becol");
+    if(j!==null){
+      cols[+j]=e.target.value.toUpperCase();
+      var t=$('[data-becolt="'+j+'"]'); if(t) t.value=cols[+j];
+    }else{
+      var k=e.target.getAttribute("data-becolt");
+      if(k!==null){
+        var v=e.target.value.trim();
+        if(/^#?[0-9a-fA-F]{6}$/.test(v)){
+          if(v[0]!=="#") v="#"+v; v=v.toUpperCase();
+          cols[+k]=v;
+          var cp=$('[data-becol="'+k+'"]'); if(cp) cp.value=v;
+        }
+      }
+    }
+    if(b.t!=="p") b.c=cols[0];
+    // 只更新预览与草稿条，不重建输入框，避免打断连续输入
+    $("bePreview").style.background=blockBg(b);
+    renderDraft();
+  });
+  $("tabs").onclick=function(e){
+    var t=e.target.closest(".tab"); if(!t) return;
+    var tab=t.getAttribute("data-tab");
+    if(tab==="random"){ renderRandom(); }
+    if(tab==="manual"){ renderManual(); }
+    if(tab==="explore"){ renderHues(); drawPicker(); updatePicked(); }
+    if(tab==="classic"){ renderClassics(); renderPatternEditor(); }
+    switchTab(tab);
+  };
+
+  $("classicGrid").onclick=function(e){
+    var item=e.target.closest(".classic-item"); if(!item) return;
+    var key=item.getAttribute("data-p"), p=findPattern(key);
+    if(!p) return;
+    state.patternEditKey=key;
+    state.patternEditColors=p.colors.slice();
+    renderClassics(); renderPatternEditor();
+  };
+  $("classicHexrows").addEventListener("input",function(e){
+    var i=e.target.getAttribute("data-pathex");
+    if(i!==null){
+      state.patternEditColors[+i]=e.target.value.toUpperCase();
+      var t=$('[data-pathext="'+i+'"]'); if(t) t.value=state.patternEditColors[+i];
+    }else{
+      var j=e.target.getAttribute("data-pathext");
+      if(j!==null){
+        var v=e.target.value.trim();
+        if(/^#?[0-9a-fA-F]{6}$/.test(v)){
+          if(v[0]!=="#") v="#"+v; v=v.toUpperCase();
+          state.patternEditColors[+j]=v;
+          var pk=$('[data-pathex="'+j+'"]'); if(pk) pk.value=v;
+        }
+      }
+    }
+    var p=findPattern(state.patternEditKey);
+    if(p) $("classicBigPreview").style.background=patternBg(p.gen,state.patternEditColors);
+  });
+  $("classicAdd").onclick=function(){ addPatternBlock(false); };
+  $("classicOnly").onclick=function(){ addPatternBlock(true); };
+  $("classicCancel").onclick=function(){ state.patternEditKey=null; renderClassics(); renderPatternEditor(); };
+
+  $("hues").onclick=function(e){
+    var s=e.target.closest(".scheme"); if(!s) return;
+    state.hue=+s.getAttribute("data-h");
+    if(isGrayHue()) state.sat=0;
+    renderHues(); drawPicker(); updatePicked();
+  };
+  $("addPicked").onclick=function(){
+    if(addBlocks([solid(hslToHex(state.hue,state.sat,state.lit))])) toast("已作为一块加入");
+  };
+
+  $("schemes").onclick=function(e){
+    var s=e.target.closest(".scheme"); if(!s) return;
+    state.scheme=s.getAttribute("data-scheme");
+    [].forEach.call(document.querySelectorAll("#schemes .scheme"),function(el){ el.classList.toggle("active",el===s); });
+    renderRandom();
+  };
+  $("regen").onclick=renderRandom;
+  $("randomAdd").onclick=function(){
+    if(addBlocks(state.randomCols.map(solid))) toast("已加入 "+state.randomCols.length+" 个色块");
+  };
+
+  $("imgInput").onchange=function(e){
+    var f=e.target.files[0]; if(!f) return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      var img=new Image();
+      img.onload=function(){
+        var cols=extractColors(img,5);
+        state.imageCols=cols;
+        if(cols.length){
+          $("imgPreview").innerHTML=cols.map(function(c){ return '<div class="swatch" style="background:'+c+'"><span>'+c+'</span></div>'; }).join("");
+          toast("已提取 "+cols.length+" 个颜色，点下方加入");
+        } else toast("取色失败，换张图试试");
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(f);
+  };
+  $("imgAdd").onclick=function(){
+    if(!state.imageCols.length){ toast("先选一张图片"); return; }
+    if(addBlocks(state.imageCols.map(solid))) toast("已加入 "+state.imageCols.length+" 个色块");
+  };
+
+  $("addHex").onclick=function(){ if(state.manualColors.length>=8){ toast("最多 8 个颜色"); return; } state.manualColors.push("#888888"); renderManual(); };
+  $("manualAdd").onclick=function(){
+    var cols=state.manualColors.filter(function(c){ return /^#[0-9a-fA-F]{6}$/.test(c); }).map(function(c){ return c.toUpperCase(); });
+    if(addBlocks(cols.map(solid))) toast("已加入 "+cols.length+" 个色块");
+  };
+  $("hexrows").addEventListener("input",function(e){
+    var i=e.target.getAttribute("data-hex"); if(i!==null){
+      state.manualColors[+i]=e.target.value.toUpperCase();
+      var txt=$('[data-hextxt="'+i+'"]'); if(txt) txt.value=state.manualColors[+i];
+      return;
+    }
+    var j=e.target.getAttribute("data-hextxt"); if(j!==null){
+      var v=e.target.value.trim(); if(/^#?[0-9a-fA-F]{6}$/.test(v)){
+        if(v[0]!=="#") v="#"+v; v=v.toUpperCase(); state.manualColors[+j]=v;
+        var picker=$('[data-hex="'+j+'"]'); if(picker) picker.value=v;
+      }
+    }
+  });
+  $("hexrows").addEventListener("click",function(e){
+    var d=e.target.getAttribute("data-hexdel"); if(d!==null){
+      if(state.manualColors.length<=1){ toast("至少保留 1 个颜色"); return; }
+      state.manualColors.splice(+d,1); renderManual();
+    }
+  });
+
+  $("saveBtn").onclick=function(){
+    if(!state.draft.length){ toast("先加入至少一个色块"); return; }
+    var blocks=state.draft.map(function(b){
+      return b.t==="p"
+        ? {t:"p", key:b.key, gen:b.gen, name:b.name, cols:b.cols.slice()}
+        : {t:"c", c:b.c};
+    });
+    var source=$("fSource").value.trim();
+    var tags=$("fTags").value.trim().split(/\s+/).filter(Boolean);
+    if(state.editingId){
+      var c=findCard(state.editingId);
+      if(c){ c.blocks=blocks; c.source=source; c.tags=tags; }
+      toast("已更新");
+    }else{
+      state.cards.unshift({ id:"c"+Date.now(), blocks:blocks, source:source, tags:tags, starred:false, createdAt:Date.now() });
+      toast("已保存色卡");
+    }
+    save(); closeSheet(); render();
+  };
+
+  $("filters").onclick=function(e){
+    var chip=e.target.closest(".chip"); if(!chip) return;
+    state.filter=chip.getAttribute("data-f"); render();
+  };
+  $("searchInput").oninput=function(e){ state.search=e.target.value.trim(); render(); };
+
+  $("wall").onclick=function(e){
+    var el=e.target.closest("[data-act]"); if(!el) return;
+    var act=el.getAttribute("data-act"), id=el.getAttribute("data-id"), c=findCard(id);
+    if(!c) return;
+    if(act==="copyall"){ copyText(cardCopyText(c)); }
+    else if(act==="star"){ c.starred=!c.starred; save(); render(); toast(c.starred?"已加星标":"已取消星标"); }
+    else if(act==="edit"){ openSheet(id); }
+    else if(act==="del"){
+      if(confirm("删除这张色卡？")){ state.cards=state.cards.filter(function(x){ return x.id!==id; }); save(); render(); toast("已删除"); }
+    }
+    else if(act==="css"){
+      var blocks=cardBlocks(c);
+      var base=(c.source||"palette").replace(/[^\w\u4e00-\u9fa5]/g,"-").replace(/-+/g,"-")||"palette";
+      var lines=[], idx=1;
+      blocks.forEach(function(b){
+        if(b.t==="p"){
+          lines.push("  /* "+(b.name||"图案")+" */");
+          (b.cols||[]).forEach(function(col){ lines.push("  --"+base+"-"+(idx++)+": "+col+";"); });
+        }else{
+          lines.push("  --"+base+"-"+(idx++)+": "+b.c+";");
+        }
+      });
+      var css="/* 配色灵感 · "+blocks.length+" 块 */\n:root {\n"+lines.join("\n")+"\n}";
+      $("codeTitle").textContent="导出 CSS · "+(c.source||"配色");
+      $("codeBox").value=css;
+      $("codeOverlay").classList.add("open"); $("codeSheet").classList.add("open");
+    }
+  };
+  $("codeX").onclick=function(){ $("codeOverlay").classList.remove("open"); $("codeSheet").classList.remove("open"); };
+  $("codeOverlay").onclick=function(){ $("codeX").onclick(); };
+  $("copyCode").onclick=function(){ copyText($("codeBox").value); };
+
+  /* ---------- backup / restore ---------- */
+  function openBackup(){
+    $("backupStatus").textContent="当前共 "+state.cards.length+" 张色卡";
+    $("importText").value="";
+    $("backupOverlay").classList.add("open"); $("backupSheet").classList.add("open");
+  }
+  function closeBackup(){ $("backupOverlay").classList.remove("open"); $("backupSheet").classList.remove("open"); }
+  function backupPayload(){
+    return JSON.stringify({ app:"palette-cards", version:2, exportedAt:new Date().toISOString(), cards:state.cards }, null, 2);
+  }
+  function isHex(c){ return typeof c==="string" && /^#[0-9A-F]{6}$/i.test(c); }
+  function sanitizeCard(raw){
+    if(!raw || typeof raw!=="object") return null;
+    var blocks=[];
+    var src=Array.isArray(raw.blocks)?raw.blocks:(Array.isArray(raw.colors)?raw.colors.map(function(c){ return {t:"c",c:c}; }):[]);
+    src.forEach(function(b){
+      if(b && b.t==="p" && Array.isArray(b.cols) && b.cols.length>=2){
+        var p=findPattern(b.key);
+        blocks.push({t:"p", key:b.key, gen:b.gen||(p&&p.gen)||"stripe", name:b.name||(p&&p.name)||"图案", cols:b.cols.filter(isHex).slice(0,8)});
+      }else if(b && isHex(b.c)){
+        blocks.push({t:"c", c:b.c.toUpperCase()});
+      }
+    });
+    if(blocks.length<1) return null;
+    return {
+      id: (typeof raw.id==="string"&&raw.id)?raw.id:("c"+Date.now()+Math.floor(Math.random()*100000)),
+      blocks:blocks, source:String(raw.source||""), tags:Array.isArray(raw.tags)?raw.tags.filter(function(t){ return typeof t==="string"; }).slice(0,20):[],
+      starred:!!raw.starred, createdAt:Number(raw.createdAt)||Date.now()
+    };
+  }
+  function doImport(text){
+    var data;
+    try{ data=JSON.parse(text); }catch(e){ $("backupStatus").textContent="内容格式不对，请检查是否复制完整"; return; }
+    var rawCards=Array.isArray(data)?data:(data&&Array.isArray(data.cards)?data.cards:null);
+    if(!rawCards){ $("backupStatus").textContent="没找到色卡数据"; return; }
+    var imported=rawCards.map(sanitizeCard).filter(Boolean);
+    if(!imported.length){ $("backupStatus").textContent="没有可导入的有效色卡"; return; }
+    var ids={}; state.cards.forEach(function(c){ ids[c.id]=true; });
+    var added=0;
+    imported.forEach(function(c){
+      var id=c.id;
+      while(ids[id]){ id=id+"_"+Math.floor(Math.random()*1000); }
+      c.id=id; ids[id]=true; state.cards.unshift(c); added++;
+    });
+    state.cards.sort(function(a,b){ return (Number(b.createdAt)||0)-(Number(a.createdAt)||0); });
+    save(); render();
+    $("backupStatus").textContent="已导入 "+added+" 张色卡";
+    toast("已导入 "+added+" 张色卡");
+  }
+  $("backupBtn").onclick=openBackup;
+  $("backupX").onclick=closeBackup;
+  $("backupOverlay").onclick=closeBackup;
+  $("exportFile").onclick=function(){
+    try{
+      var blob=new Blob([backupPayload()],{type:"application/json"});
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement("a"); a.href=url;
+      a.download="配色备份-"+new Date().toISOString().slice(0,10)+".json";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); },1000);
+      $("backupStatus").textContent="已生成备份文件，请保存到网盘或微信收藏";
+    }catch(e){ $("backupStatus").textContent="下载失败，可改用「复制备份内容」"; }
+  };
+  $("exportCopy").onclick=function(){ copyText(backupPayload()); $("backupStatus").textContent="备份内容已复制，粘贴到备忘录或微信收藏即可"; };
+  $("importPick").onclick=function(){ $("importFile").click(); };
+  $("importFile").onchange=function(e){
+    var f=e.target.files[0]; if(!f) return;
+    var reader=new FileReader();
+    reader.onload=function(ev){ doImport(String(ev.target.result)); };
+    reader.onerror=function(){ $("backupStatus").textContent="文件读取失败"; };
+    reader.readAsText(f);
+    e.target.value="";
+  };
+  $("importPaste").onclick=function(){
+    var t=$("importText").value.trim();
+    if(!t){ $("backupStatus").textContent="请先粘贴备份内容"; return; }
+    doImport(t);
+  };
+
+  bindPicker();
+  load(); render();
+})();
+</script>
+<script>
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',function(){
+      navigator.serviceWorker.register('./sw.js').catch(function(){});
+    });
+  }
+</script>
+</body>
+</html>
